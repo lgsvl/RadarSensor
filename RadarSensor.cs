@@ -39,7 +39,7 @@ namespace Simulator.Sensors
         private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
 
         [AnalysisMeasurement(MeasurementType.Count)]
-        private int MaxTracked = -1;
+        public int MaxTracked = -1;
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
         
