@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
+ * Copyright (c) 2019-2021 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -13,8 +13,6 @@ using Simulator.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
 using Simulator.Sensors.UI;
-using System.Collections;
-using Simulator.Analysis;
 
 namespace Simulator.Sensors
 {
@@ -64,7 +62,9 @@ namespace Simulator.Sensors
             Debug.Assert(SimulatorManager.Instance != null);
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
             foreach (var radar in radars)
+            {
                 radar.SetCallbacks(WhileInRange, OnExitRange);
+            }
             nextPublish = Time.time + 1.0f / Frequency;
         }
 
@@ -109,9 +109,13 @@ namespace Simulator.Sensors
             if (CheckBlocked(other))
             {
                 if (Detected.ContainsKey(other))
+                {
                     Detected.Remove(other);
+                }
                 if (Visualized.ContainsKey(other))
+                {
                     Visualized.Remove(other);
+                }
                 return;
             }
 
@@ -169,10 +173,14 @@ namespace Simulator.Sensors
         void OnExitRange(Collider other)
         {
             if (Detected.ContainsKey(other))
+            {
                 Detected.Remove(other);
+            }
 
             if (Visualized.ContainsKey(other))
+            {
                 Visualized.Remove(other);
+            }
         }
 
         private bool CheckBlocked(Collider col)
@@ -185,7 +193,9 @@ namespace Simulator.Sensors
             if (Physics.Raycast(orig, dir, out RaycastHit hit, dist, RadarBlockers)) // ignore if blocked
             {
                 if (hit.collider != col)
+                {
                     isBlocked = true;
+                }
             }
             return isBlocked;
         }
@@ -196,13 +206,21 @@ namespace Simulator.Sensors
             Vector3 size = Vector3.zero;
 
             if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+            {
                 bbox.Color = Color.green;
+            }
             else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
+            {
                 bbox.Color = Color.yellow;
+            }
             else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
+            {
                 bbox.Color = Color.cyan;
+            }
             else if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))
+            {
                 bbox.Color = Color.magenta;
+            }
             else
             {
                 return bbox;
@@ -227,8 +245,8 @@ namespace Simulator.Sensors
             else if (other is MeshCollider)
             {
                 var mesh = other as MeshCollider;
-                var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                var va = mesh.GetComponent<VehicleActions>();
+                var npcC = mesh.GetComponentInParent<NPCController>();
+                var va = mesh.GetComponentInParent<VehicleActions>();
                 
                 if (npcC != null)
                 {
@@ -260,9 +278,13 @@ namespace Simulator.Sensors
             // angle is orientation of the obstacle in degrees as seen by radar, counterclockwise is positive
             double angle = -Vector3.SignedAngle(transform.forward, col.transform.forward, transform.up);
             if (angle > 90)
+            {
                 angle -= 180;
+            }
             else if (angle < -90)
+            {
                 angle += 180;
+            }
             return angle;
         }
 
@@ -271,13 +293,19 @@ namespace Simulator.Sensors
             Vector3 velocity = Vector3.zero;
             var npc = col.GetComponent<NPCController>();
             if (npc != null)
+            {
                 velocity = npc.simpleVelocity;
+            }
             var ped = col.GetComponent<NavMeshAgent>();
             if (ped != null)
+            {
                 velocity = ped.desiredVelocity;
+            }
             var rb = col.attachedRigidbody;
             if (rb != null)
+            {
                 velocity = rb.velocity;
+            }
             return velocity;
         }
 
@@ -285,7 +313,9 @@ namespace Simulator.Sensors
         {
             int state = 1;
             if (col.GetComponent<NPCController>()?.currentSpeed > 1f)
+            {
                 state = 0;
+            }
             return state;
         }
 
@@ -296,7 +326,9 @@ namespace Simulator.Sensors
                 var collider = v.Key;
                 var box = v.Value;
                 if (collider.gameObject.activeInHierarchy)
-                    WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+                {
+                    WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+                }
             }
 
             foreach (var radar in radars)
