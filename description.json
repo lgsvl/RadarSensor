@@ -1,7 +1,7 @@
 {
   "name": "Radar Sensor",
   "accessType": "public",
-  "description": "This sensor outputs the objects detected by the radar. Detected objects are visualized with a box colored by their type:\n\t[\n\t\t\"Car\": \"Green\"\n\t\t\"Bicycle\": \"Cyan\"\n\t\t\"Agent\": \"Magenta\"\n\t]\nSee {{DOCS_HOST}}/docs/python-api/#radar for more details.",
+  "description": "This sensor outputs the objects detected by the radar. Detected objects are visualized with a box colored by their type:\n\t[\n\t\t\"Car\": \"Green\"\n\t\t\"Bicycle\": \"Cyan\"\n\t\t\"Agent\": \"Magenta\"\n\t]\nSee {{DOCS_HOST}}/docs/simulation-content/sensors-list/#radar for more details.",
   "licenseName": "LG Content",
   "copyright": "LG Electronics Inc.",
   "tags": [
