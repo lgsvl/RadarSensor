@@ -246,7 +246,7 @@ namespace Simulator.Sensors
             {
                 var mesh = other as MeshCollider;
                 var npcC = mesh.GetComponentInParent<NPCController>();
-                var va = mesh.GetComponentInParent<VehicleActions>();
+                var va = mesh.GetComponentInParent<IAgentController>();
                 
                 if (npcC != null)
                 {
