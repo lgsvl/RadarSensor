@@ -39,7 +39,8 @@ namespace Simulator.Sensors
         [AnalysisMeasurement(MeasurementType.Count)]
         public int MaxTracked = -1;
         
-        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
+        public override SensorDistributionType DistributionType => SensorDistributionType.MainOrClient;
+        public override float PerformanceLoad { get; } = 0.2f;
         
         struct Box
         {
@@ -57,7 +58,7 @@ namespace Simulator.Sensors
             SimulatorManager.Instance.NPCManager.RegisterDespawnCallback(OnExitRange);
         }
 
-        private void Start()
+        protected override void Initialize()
         {
             Debug.Assert(SimulatorManager.Instance != null);
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
@@ -66,6 +67,11 @@ namespace Simulator.Sensors
                 radar.SetCallbacks(WhileInRange, OnExitRange);
             }
             nextPublish = Time.time + 1.0f / Frequency;
+        }
+
+        protected override void Deinitialize()
+        {
+            
         }
 
         private void Update()
