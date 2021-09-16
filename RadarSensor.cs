@@ -32,6 +32,7 @@ namespace Simulator.Sensors
 
         private BridgeInstance Bridge;
         private Publisher<DetectedRadarObjectData> Publish;
+        private Rigidbody SelfRigidBody;
         
         private Dictionary<Collider, DetectedRadarObject> Detected = new Dictionary<Collider, DetectedRadarObject>();
         private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
@@ -67,6 +68,8 @@ namespace Simulator.Sensors
                 radar.SetCallbacks(WhileInRange, OnExitRange);
             }
             nextPublish = Time.time + 1.0f / Frequency;
+
+            SelfRigidBody = gameObject.GetComponentInParent<Rigidbody>();            
         }
 
         protected override void Deinitialize()
@@ -85,7 +88,7 @@ namespace Simulator.Sensors
             {
                 return;
             }
-
+                        
             nextPublish = Time.time + 1.0f / Frequency;
             MaxTracked = Mathf.Max(MaxTracked, Detected.Count);
             Publish(new DetectedRadarObjectData()
@@ -127,15 +130,17 @@ namespace Simulator.Sensors
 
             if (Detected.ContainsKey(other)) // update existing data
             {
+                Vector3 objectVelocity = GetObjectVelocity(other);
+
                 Detected[other].SensorPosition = transform.position;
                 Detected[other].SensorAim = transform.forward;
                 Detected[other].SensorRight = transform.right;
                 Detected[other].SensorVelocity = GetSensorVelocity();
                 Detected[other].SensorAngle = GetSensorAngle(other);
                 Detected[other].Position = other.bounds.center;
-                Detected[other].Velocity = GetObjectVelocity(other);
+                Detected[other].Velocity = objectVelocity;
                 Detected[other].RelativePosition = other.bounds.center - transform.position;
-                Detected[other].RelativeVelocity = GetSensorVelocity() - GetObjectVelocity(other);
+                Detected[other].RelativeVelocity = GetSensorVelocity() - objectVelocity;
                 Detected[other].ColliderSize = other.bounds.size;
                 Detected[other].State = GetAgentState(other);
                 Detected[other].NewDetection = false;
@@ -145,6 +150,8 @@ namespace Simulator.Sensors
                 Box box = GetVisualizationBox(other);
                 if (box.Size != Vector3.zero) // Empty box returned if tag is not right
                 {
+                    Vector3 objectVelocity = GetObjectVelocity(other);
+
                     Visualized.Add(other, box);
                     Detected.Add(other, new DetectedRadarObject()
                     {
@@ -155,9 +162,9 @@ namespace Simulator.Sensors
                         SensorVelocity = GetSensorVelocity(),
                         SensorAngle = GetSensorAngle(other),
                         Position = other.bounds.center,
-                        Velocity = GetObjectVelocity(other),
+                        Velocity = objectVelocity,
                         RelativePosition = other.bounds.center - transform.position,
-                        RelativeVelocity = GetSensorVelocity() - GetObjectVelocity(other),
+                        RelativeVelocity = GetSensorVelocity() - objectVelocity,
                         ColliderSize = other.bounds.size,
                         State = GetAgentState(other),
                         NewDetection = true,
@@ -276,7 +283,7 @@ namespace Simulator.Sensors
 
         private Vector3 GetSensorVelocity()
         {
-            return gameObject.GetComponentInParent<Rigidbody>() == null ? Vector3.zero : gameObject.GetComponentInParent<Rigidbody>().velocity;
+            return SelfRigidBody == null ? Vector3.zero : SelfRigidBody.velocity;
         }
 
         private double GetSensorAngle(Collider col)
@@ -297,21 +304,28 @@ namespace Simulator.Sensors
         private Vector3 GetObjectVelocity(Collider col)
         {
             Vector3 velocity = Vector3.zero;
-            var npc = col.GetComponent<NPCController>();
+            var npc = col.GetComponentInParent<NPCController>();
             if (npc != null)
             {
                 velocity = npc.simpleVelocity;
             }
-            var ped = col.GetComponent<NavMeshAgent>();
-            if (ped != null)
+            else
             {
-                velocity = ped.desiredVelocity;
+                var ped = col.GetComponentInParent<NavMeshAgent>();
+                if (ped != null)
+                {
+                    velocity = ped.desiredVelocity;
+                }
+                else
+                {
+                    var rb = col.attachedRigidbody;
+                    if (rb != null)
+                    {
+                        velocity = rb.velocity;
+                    }
+                }
             }
-            var rb = col.attachedRigidbody;
-            if (rb != null)
-            {
-                velocity = rb.velocity;
-            }
+
             return velocity;
         }
 
